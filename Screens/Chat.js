@@ -43,6 +43,13 @@ export default function Chat(){
         return unsubscribe;
     }, []);
 
+    const chatbotQuestions = [
+        'What is your name?',
+        'Where are you from?',
+        'How can we assist you?',
+        // Add more questions as needed
+    ];
+
     const onSend = useCallback((messages = []) => {
 
             setMessages((previousMessages) => GiftedChat.append(previousMessages, messages));
@@ -57,7 +64,7 @@ export default function Chat(){
                 user
             });
 
-
+            
 
     }, []);
 
