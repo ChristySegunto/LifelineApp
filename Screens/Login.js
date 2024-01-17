@@ -3,71 +3,58 @@ import {Text, StyleSheet, View, ScrollView, ImageBackground, Image, TextInput, T
 import { app, getDatabase, db } from "firebase/database";
 import { getFirestore, collection, doc, getDoc } from "firebase/firestore";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from './../Firebase/firebase';
 
-const Login = ({navigation})=>{
+export default function Login({navigation}) {
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const firestore = getFirestore(app);
 
-    const signIn = async () => {
-        const auth = getAuth(app);
-
-        // Initialize Firestore
-        const firestore = getFirestore(app);
-
-        // try {
-
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            
-            if (userCredential && userCredential.user){
+    const onHandleLogin = async () => {
+        if (email !== "" && password !== "") {
+            try{
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                
+                // Check if the user document exists
+                const userDocRef = doc(firestore, 'users', user.uid);
+                const userDocSnapshot = await getDoc(userDocRef);
 
-                // Check user role in Firestore
-                const userDocRef = doc(firestore, 'users', user.uid); // Assuming 'users' is your collection
-                const userDoc = await getDoc(userDocRef);
+                    if (userDocSnapshot.exists()) {
+                        const userAcc = userDocSnapshot.data();
+                        const userRole = userAcc.role;
 
+                        Alert.alert('Success', 'Logged In Successfully');
 
+                        if (userRole === 'Fireauth') {
+                            navigation.navigate('Home_Fireauth');
+                        } else if (userRole === 'Resident') {
+                            navigation.navigate('Home_Resident');
+                        } else {
+                            console.error('Unknown user role:', userRole);
+                        }
 
-                if (userDoc.exists()) {
-                    const userAcc = userDoc.data();
-                    const userRole = userAcc.role;
-
-                    Alert.alert('Success', 'Logged In Successfully');
-
-                    if (userRole === 'Fireauth') {
-                        navigation.navigate('Home_Fireauth');
-                    } else if (userRole === 'Resident') {
-                        navigation.navigate('Home_Resident');
                     } else {
-                        console.error('Unknown user role:', userRole);
+                        // The user document doesn't exist, create it
+                        setDoc(userDocRef, {
+                            // Your document data here, you can include role, etc.
+                            role: 'Resident',
+                        });
+
+                        navigation.navigate('Home_Resident');
                     }
-                    
-                } else {
-                    console.error('User document not found in Firestore.');
-                }
 
-            } else {
-                Alert.alert('Failed', 'Invalid Credentials');
+            } catch (error) {
+                console.error('Login error:', error.message);
+                Alert.alert('Login Failed', error.message);
             }
-            
+                 
 
-        // } catch (error) {
-        //     const errorCode = error.code;
-        //     const errorMessage = error.message;
-        //     // ..
-        //     //Alert.alert('Error', errorMessage);
-        // }
-            
-
-    }
-
-    function navigate(){
-        navigation.navigate('Register');
-        navigation.navigate('Home_Resident');
-        navigation.navigate('Home_Fireauth')
-    }
+        } else {
+            Alert.alert('Login Failed','Please fill up all fields.')
+        }
+    };
 
 
 
@@ -95,14 +82,14 @@ const Login = ({navigation})=>{
                     <TextInput value={password} placeholder={"Password"} secureTextEntry={true} style={styles.TextInput} onChangeText={(text) => setPassword(text)} />
 
                     {/* Button */}
-                    <TouchableOpacity style={styles.Button} onPress={signIn}>
+                    <TouchableOpacity style={styles.Button} onPress={onHandleLogin}>
                         <Text style={styles.ButtonText}>LOGIN</Text>
                     </TouchableOpacity>
 
                     {/* Hyperlink  */}
                     <View style={styles.ExtraView}>
                         <Text style={styles.MiniText}>Don't have an account? </Text>
-                        <TouchableOpacity onPress={() => navigate('Login')}>
+                        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
                             <Text style={styles.HyperlinkText}>Register.</Text>
                         </TouchableOpacity>
                     </View>
@@ -214,4 +201,3 @@ const styles = StyleSheet.create({
     
 });
 
-export default Login;
