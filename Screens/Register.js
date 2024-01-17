@@ -54,7 +54,7 @@ const Register = ({navigation}) => {
     function navigate() {
         navigation.navigate('Register');
         navigation.navigate('Home_Resident');
-        navigation.navigate('Home_Fireauth')
+        navigation.navigate('Home_Fireauth');
     }
 
 
