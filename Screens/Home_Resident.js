@@ -1,15 +1,18 @@
 import React, { useState, userState, useEffect } from "react";
 import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView, StyleSheet, Text, View, ImageBackground, TouchableOpacity, Image } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, ImageBackground, TouchableOpacity, Image, Alert } from 'react-native';
 import { app, getDatabase, db } from "firebase/database";
 import { getFirestore, collection, doc, getDoc } from "firebase/firestore";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { Entypo } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
+import { auth } from './../Firebase/firebase';
 
-const Home_Resident = ({}) => {
+
+const Home_Resident = ({navigation}) => {
     const [userName, setUserName] = useState('');
     const [currentDate, setCurrentDate] = useState('');
+
 
     useEffect(() => {
         const auth = getAuth();
@@ -43,6 +46,17 @@ const Home_Resident = ({}) => {
         const currentDate = new Date().toLocaleDateString();
         setCurrentDate(currentDate);
     }, []);
+
+    const onHandleLogout = async () => {
+        try {
+            await signOut(auth);
+            Alert.alert('Success', 'Logged In Successfully');
+            navigation.navigate('Login'); // Navigate to the login screen after logout
+        } catch (error) {
+            console.error('Logout error:', error.message);
+            // Handle logout error if necessary
+        }
+    };
  
     return(
         <View style={styles.mainView}>
@@ -85,7 +99,7 @@ const Home_Resident = ({}) => {
 
                         <View style={styles.RightBox}>
                             <View style={styles.RightBox1}>
-                                <TouchableOpacity style={styles.Button2}>
+                                <TouchableOpacity style={styles.Button2} onPress={() => navigation.navigate('Chat')}>
                                     <Image source={require('./../assets/img/chatwithfirey.png')} style={styles.RButtonImage1}></Image>
                                     <Text style={styles.RButtonText1}>Start a chat</Text>
                                     <Text style={styles.RBigButtonText1}>With Firey</Text>
@@ -109,7 +123,7 @@ const Home_Resident = ({}) => {
                             <TouchableOpacity style={styles.icons}>
                                 <Entypo name="message" size={45} color="#A6A6A6" style={styles.icon1} />
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.icons}>
+                            <TouchableOpacity style={styles.icons} onPress={onHandleLogout}>
                                 <MaterialIcons name="logout" size={45} color="#A6A6A6" style={styles.icon1} />
                             </TouchableOpacity>
                                 
