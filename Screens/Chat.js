@@ -13,7 +13,7 @@ import { GiftedChat } from "react-native-gifted-chat";
 import { getAuth } from "firebase/auth";
 import { getFirestore, collection, query, orderBy, onSnapshot, addDoc, doc } from "firebase/firestore";
 import { app } from '../Firebase/firebase';
-import { useAuth } from './../Firebase/AuthContext';
+
 
 
 
@@ -56,6 +56,8 @@ export default function Chat(){
                 text,
                 user
             });
+
+
 
     }, []);
 

@@ -5,11 +5,9 @@ import Login from './Screens/Login';
 import Register from './Screens/Register';
 import Home_Fireauth from './Screens/Home_Fireauth';
 import Home_Resident from './Screens/Home_Resident';
-import Chat1 from './Screens/Chat1';
 import Chat from './Screens/Chat';
 
 import { onAuthStateChanged } from 'firebase/auth';
-import { AuthProvider } from './Firebase/AuthContext';
 import { ActivityIndicator, View } from 'react-native';
 import { auth } from './Firebase/firebase'
 
