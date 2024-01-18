@@ -3,12 +3,12 @@ import React, {
     useState,
     useEffect,
     useLayoutEffect,
-    useCallback
+    useCallback,
 } from 'react';
 import colors from '../colors';
 import { AntDesign } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity, Text } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { TouchableOpacity, Text, View, Alert } from 'react-native';
 import { GiftedChat } from "react-native-gifted-chat";
 import { getAuth } from "firebase/auth";
 import { getFirestore, collection, query, orderBy, onSnapshot, addDoc, doc } from "firebase/firestore";
@@ -16,78 +16,267 @@ import { app } from '../Firebase/firebase';
 
 
 
-
-export default function Chat(){
+export default function Chat() {
+    const navigation = useNavigation();
     const [messages, setMessages] = useState([]);
-    const auth = getAuth(app);
-    const user = auth.currentUser;
-    const db = getFirestore(app);
+    const [conversationStep, setConversationStep] = useState(0);
+    const [locationDetails, setLocationDetails] = useState('');
+    const [fireCauseDetails, setFireCauseDetails] = useState('');
+    const [fireSizeDetails, setFireSizeDetails] = useState('');
+    const [fireDepartment, setFireDepartment] = useState('');
+    const [specialNeeds, setSpecialNeeds] = useState('');
+    const [additionalInfo, setAdditionalInfo] = useState('');
 
-    const userId = auth.currentUser.uid;
-    useLayoutEffect(() => {
 
-        const collectionRef = collection(db, 'users', userId, 'messages');
-        const q = query(collectionRef, orderBy('createdAt', 'desc'));
 
-        const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            console.log('querySnapshot unsubscribe');
-            setMessages(
-                querySnapshot.docs.map(doc => ({
-                    _id: doc.data()._id,
-                    createdAt: doc.data().createdAt.toDate(),
-                    text: doc.data().text,
-                    user: doc.data().user
-                }))
-            );
-        });
-        return unsubscribe;
-    }, []);
+    const [isTextInputEnabled, setIsTextInputEnabled] = useState(true); // Add this state
 
-    const chatbotQuestions = [
-        'What is your name?',
-        'Where are you from?',
-        'How can we assist you?',
-        // Add more questions as needed
-    ];
+    const resetChat = () => {
+        // Reset all relevant state variables
+        setMessages([]);
+        setLocationDetails('');
+        setFireCauseDetails('');
+        setFireSizeDetails('');
+        setFireDepartment('');
+        setSpecialNeeds('');
+        setAdditionalInfo('');
+        setIsTextInputEnabled(true);
+        setConversationStep(0);  // Reset the summarization flag
+    };
 
-    const onSend = useCallback((messages = []) => {
+    useEffect(() => {
+        //Initiate the chat when the component mounts
+        resetChat();
+        handleFireInitiation();
+    }, []);  
+ 
+    
+    const proceedButton = { title: 'Proceed', value: 'proceed', style: { backgroundColor: '#C1121F', color: 'white' } };
+    const exitButton = { title: 'Exit', value: 'exit', style: { backgroundColor: '#A6A6A6', color: 'white' } };
 
-            setMessages((previousMessages) => GiftedChat.append(previousMessages, messages));
 
-            const { _id, createdAt, text, user } = messages[0];
-            const auth = getAuth();
+    const handleFireInitiation = () => {
+        const initialMessage = createBotMessage("Hi, this is Firey. Please select an option:", [
+            { ...proceedButton, onPress: () => handleButtonPress(proceedButton.value) },
+            { ...exitButton, onPress: () => handleButtonPress(exitButton.value) },
+        ]);
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, initialMessage));
+        setIsTextInputEnabled(false); // Disable text input during handleFireInitiation
+
+        setConversationStep(0);
+
+    };
+
+    const createBotMessage = (text, buttons = []) => ({
+        _id: Math.round(Math.random() * 1000000).toString(),
+        text,
+        buttons,
+        createdAt: new Date(),
+        user: { _id: 2, name: 'Firey', avatar: './../assets/img/avatar.png' },
+    });
+
+    const handleButtonPress = (value) => {
+
+        if(value === 'proceed'){
+            setIsTextInputEnabled(true);
+            handleProceed();
+        } else if (value === 'exit'){
+            Alert.alert("Thank you for using Firey.","We hope that you are always safe!");
+            navigation.navigate('Home_Resident');
+        }
+
+    }
+
+    const handleProceed = (text) => {
+        switch (conversationStep) {
+            case 0:
+                console.log(conversationStep);
+                askLocationDetails();
+                break;
+            case 1:
+                console.log(conversationStep);
+                setLocationDetails(text);
+                askFireCauseDetails(); // Remove this line
+                break;
+            case 2:
+                console.log(conversationStep);
+                setFireCauseDetails(text);
+                askFireSizeDetails(); // Remove this line
+                break;
+            case 3:
+                console.log(conversationStep);
+                setFireSizeDetails(text);
+                askSpecialNeeds(); // Remove this line
+                break;
+            case 4:
+                console.log(conversationStep);
+                setSpecialNeeds(text);
+                askAdditionalInformation(); // Remove this line
+                break;
+            case 5:
+                console.log(conversationStep);
+                setAdditionalInfo(text);
+                goodbye(); // Remove this line
+                break;
+            default:
+                
+                break;
+        }
+    };
+
+        const askLocationDetails = (text) => {
+            //setLocationDetails(text);
+            const locationMessage = createBotMessage(`Hello! I'm here to help. I'm sorry to hear about the emergency.\n\nPlease provide details about the location.`);  
+            setMessages((prevMessages) => GiftedChat.append(prevMessages, locationMessage));
+            setConversationStep(1);
+            console.log("Conversation Step: ", conversationStep);
+            console.log("part: askLocationDetails");
+        };
+
+        const askFireCauseDetails = (text) => {
+            //setFireCauseDetails(text);
+            //handle user input for location details
+            //setLocationDetails(text);
+
+            const fireCauseMessage = createBotMessage("Thank you! That is noted. Can you provide any additional details, such as how the fire started?");
+            setMessages((prevMessages) => GiftedChat.append(prevMessages, fireCauseMessage));
+            setConversationStep(2);
+            console.log("Conversation Step: ", conversationStep);
+            console.log("part: fireCauseMessage");
+        };
+
+        const askFireSizeDetails = (text) => {
+            //setFireSizeDetails(text);
+            // Logic to handle user input for fire cause details
+            //setFireCauseDetails(text);
+
+            const fireSizeMessage = createBotMessage("Understood. How about the size of the fire?");
+            setMessages((prevMessages) => GiftedChat.append(prevMessages, fireSizeMessage));
+
+            // Update the conversation step
+            setConversationStep(3);
+        };
+
+        // Use useEffect to log the conversation step after it's updated
+        useEffect(() => {
+            console.log("Conversation Step: ", conversationStep);
+            if (conversationStep === 3) {
+                console.log("part: FireSizeDetails");
+            }
+        }, [conversationStep, locationDetails, fireCauseDetails, fireSizeDetails, specialNeeds, additionalInfo]);
+
+        const askSpecialNeeds = (text) => {
+            //setSpecialNeeds(text);
+            //setFireSizeDetails(text);
+
+            const specialNeedsMessage = createBotMessage("I've relayed that information to the fire department.\n\nIn the meantime, please make sure to evacuate the building calmly and follow any safety procedures.\n\nIs there anyone with mobility issues or special needs that the emergency services should be aware of?")
+            setMessages((prevMessages) => GiftedChat.append(prevMessages, specialNeedsMessage));
+
+            setConversationStep(4);
+            console.log("Conversation Step: ", conversationStep);
+            console.log("part: askSpecialNeeds");
+        };
+
+
+        const askAdditionalInformation = (text) => {
+            //setAdditionalInfo(text);
+            //setSpecialNeeds(text);
+            // Logic to handle user input for additional information
+            const additionalInfoMessage = createBotMessage("Is there any other important information that you can provide?");
+            setMessages((prevMessages) => GiftedChat.append(prevMessages, additionalInfoMessage));
+            setConversationStep(5);
+            console.log("Conversation Step: ", conversationStep);
+            console.log("part: AdditionalInformation");
+
+        };
+        
+
+        const goodbye = (text) => {
+            //setAdditionalInfo(text);
+            //setAdditionalInfo(text);
+            const goodbyeMessage = createBotMessage(`The fire departments are now informed. They’ll do their best to reach the location as quickly as possible.\n\nPlease let them know anything else they might need to be aware of when they arrive.\n\nKeep safe and take care!`);
+            setMessages((prevMessages) => GiftedChat.append(prevMessages, goodbyeMessage));
+            setConversationStep(7);
+            console.log("Conversation Step: ", conversationStep);
+            console.log("part: goodbye");
+            setIsTextInputEnabled(false);
             
-            addDoc(collection(db, 'users', userId, 'messages'), {
-                _id,
-                createdAt,
-                text,
-                user
-            });
+        }
 
-            
+    useEffect(() => {
+        if (conversationStep === 7) {
+            summarizeMessage();
+        }
+    }, [conversationStep]);
 
-    }, []);
+        const summarizeMessage = () => {
+            const defaultMessage = createBotMessage(`This is your summarized fire report:\n\nLocation Details: ${locationDetails}\nFire Cause Details: ${fireCauseDetails}\nFire Size Details: ${fireSizeDetails}\nSpecial Needs: ${specialNeeds}\nAdditional Information: ${additionalInfo}`);
+            setMessages((prevMessages) => GiftedChat.append(prevMessages, defaultMessage));
+        }
 
-    return (
 
-        <GiftedChat
-            messages={messages}
-            showAvatarForEveryMessage={false}
-            showUserAvatar={false}
-            onSend={messages => onSend(messages)}
-            messagesContainerStyle={{
-                backgroundColor: '#fff'
-            }}
-            textInputStyle={{
-                backgroundColor: '#fff',
-                borderRadius: 20,
-            }}
-            user={{
-                _id: user?.uid,
-                //avatar: 'https://i.pravatar.cc/300'
-            }}
-        />
+
+    const onSend = (messages = []) => {
+        const userMessage = messages[0];
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, userMessage));
+
+        // Assuming you want to handle the user's input for the current step
+        handleProceed(userMessage.text);
+
+    };
+
+    
+
+
+    const renderButtons = (buttons) => (
+        <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 8 }}>
+            {buttons && buttons.map((button) => (
+                <TouchableOpacity
+                    key={button.value}
+                    onPress={button.onPress}
+                    style={{
+                        backgroundColor: button.style.backgroundColor,
+                        paddingVertical: 8,
+                        paddingHorizontal: 16,
+                        borderRadius: 5,
+                        marginHorizontal: 4,
+                    }}
+                >
+                    <Text style={{ color: button.style.color }}>{button.title}</Text>
+                </TouchableOpacity>
+            ))}
+        </View>
     );
 
 
+
+
+
+    return (
+        <GiftedChat
+            messages={messages}
+            onSend={(messages) => onSend(messages)}
+
+            renderMessage={(props) => (
+                <>
+                    <View style={{ backgroundColor: props.currentMessage.user._id === 2 ? '#F6F6F6' : '#C1121F', borderRadius: 10, padding: 10, marginLeft: props.currentMessage.user._id === 1 ? '36%' : 0, marginBottom: 5, width: '60%' }}>
+                        <Text style={{ color: props.currentMessage.user._id === 1 ? 'white' : 'black' }}>{props.currentMessage.text}</Text>
+                        {renderButtons(props.currentMessage.buttons)}
+                    </View>
+                </>
+            )}
+
+            messagesContainerStyle={{
+                backgroundColor: '#fff',
+            }}
+            user={{
+                _id: 1, // Your user ID
+            }}
+            textInputProps={{editable: isTextInputEnabled}} // Disable TextInput based on isTextInputEnabled state
+
+        />
+    );
 }
+
+
+
