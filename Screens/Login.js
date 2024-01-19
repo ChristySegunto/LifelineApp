@@ -89,7 +89,7 @@ export default function Login({navigation}) {
                     {/* Hyperlink  */}
                     <View style={styles.ExtraView}>
                         <Text style={styles.MiniText}>Don't have an account? </Text>
-                        <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                        <TouchableOpacity onPress={() => navigation.navigate('Register')}>
                             <Text style={styles.HyperlinkText}>Register.</Text>
                         </TouchableOpacity>
                     </View>
