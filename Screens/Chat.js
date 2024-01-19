@@ -10,11 +10,10 @@ import { AntDesign } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { TouchableOpacity, Text, View, Alert } from 'react-native';
 import { GiftedChat } from "react-native-gifted-chat";
-import { getAuth } from "firebase/auth";
-import { getFirestore, collection, query, orderBy, onSnapshot, addDoc, doc } from "firebase/firestore";
+import { getFirestore, collection, query, orderBy, onSnapshot, addDoc, doc, getDoc } from "firebase/firestore";
 import { app } from '../Firebase/firebase';
-
-
+import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+//import { getFirestore, collection, addDoc } from "firebase/firestore";
 
 export default function Chat() {
     const navigation = useNavigation();
@@ -26,7 +25,12 @@ export default function Chat() {
     const [fireDepartment, setFireDepartment] = useState('');
     const [specialNeeds, setSpecialNeeds] = useState('');
     const [additionalInfo, setAdditionalInfo] = useState('');
+    const [userName, setUserName] = useState('');
 
+    //firebase
+
+    const currentDate = new Date();
+    const dateOnly = currentDate.toLocaleDateString(); 
 
 
     const [isTextInputEnabled, setIsTextInputEnabled] = useState(true); // Add this state
@@ -209,9 +213,50 @@ export default function Chat() {
         }
     }, [conversationStep]);
 
-        const summarizeMessage = () => {
+
+
+        const summarizeMessage = async () => {
             const defaultMessage = createBotMessage(`This is your summarized fire report:\n\nLocation Details: ${locationDetails}\nFire Cause Details: ${fireCauseDetails}\nFire Size Details: ${fireSizeDetails}\nSpecial Needs: ${specialNeeds}\nAdditional Information: ${additionalInfo}`);
             setMessages((prevMessages) => GiftedChat.append(prevMessages, defaultMessage));
+
+            // Get the current user's ID
+            const db = getFirestore();
+            const auth = getAuth();
+            const userId = auth.currentUser.uid;
+
+            // Get the user's data
+            let fullName = '';
+            const userRef = doc(db, 'users', userId);
+            const userSnap = await getDoc(userRef);
+
+            if (userSnap.exists()) {
+                fullName = userSnap.data().fullName;
+            } else {
+                console.log('No such document!');
+            }
+
+            try {
+                await addDoc(collection(db, "fireReport"), {
+                    userId: userId,
+                    userFullName: fullName,
+                    locationDetails: locationDetails,
+                    fireCauseDetails: fireCauseDetails,
+                    fireSizeDetails: fireSizeDetails,
+                    specialNeeds: specialNeeds,
+                    additionalInfo: additionalInfo,
+                    timestamp: defaultMessage.createdAt.toLocaleDateString('en-GB', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        year: 'numeric',
+                    }),
+
+                    // Add any other fields you want to store here
+                });
+
+                console.log("success adding the data in the database");
+            } catch (e) {
+                console.error("Error adding document: ", e);
+            }
         }
 
 
