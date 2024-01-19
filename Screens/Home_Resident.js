@@ -1,22 +1,27 @@
-import React, { useState, userState, useEffect } from "react";
+import React, { useState, userState, useEffect, useContext } from "react";
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView, StyleSheet, Text, View, ImageBackground, TouchableOpacity, Image, Alert } from 'react-native';
-import { app, getDatabase, db } from "firebase/database";
-import { getFirestore, collection, doc, getDoc } from "firebase/firestore";
+// import { app, getDatabase, db } from "firebase/database";
+import { getFirestore, collection, doc, getDoc, query, where, getDocs, Timestamp } from "firebase/firestore";
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import { Entypo } from '@expo/vector-icons';
 import { MaterialIcons } from '@expo/vector-icons';
-import { auth } from './../Firebase/firebase';
+import { app, db } from '../Firebase/firebase';
 
+
+const currentDate = new Date();
+// const options = { timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit' };
+// const dateOnly = currentDate.toLocaleDateString('en-PH', options);
 
 const Home_Resident = ({navigation}) => {
     const [userName, setUserName] = useState('');
     const [currentDate, setCurrentDate] = useState('');
+    const auth = getAuth();
+    const db = getFirestore(app);
 
 
     useEffect(() => {
-        const auth = getAuth();
-
+        
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
                 const firestore = getFirestore(app);
@@ -50,7 +55,7 @@ const Home_Resident = ({navigation}) => {
     const onHandleLogout = async () => {
         try {
             await signOut(auth);
-            Alert.alert('Success', 'Logged In Successfully');
+            Alert.alert('Success', 'Logged Out Successfully');
             navigation.navigate('Login'); // Navigate to the login screen after logout
         } catch (error) {
             console.error('Logout error:', error.message);
@@ -88,7 +93,7 @@ const Home_Resident = ({navigation}) => {
                                 <Text style={styles.NumButtonText}>10</Text>
                             </View>
                             <View style={styles.LeftBox2}>
-                                <TouchableOpacity style={styles.Button2}>
+                                <TouchableOpacity style={styles.Button2} onPress={() => navigation.navigate('FireReports')} >
                                     <Image source={require('./../assets/img/locatethefire.png')} style={styles.ButtonImage2}></Image>
                                     <Text style={styles.ButtonText}>Locate the</Text>
                                     <Text style={styles.BigButtonText}>Fire</Text>
@@ -117,10 +122,10 @@ const Home_Resident = ({navigation}) => {
 
                     <View style={styles.ExtraSpaceDown}>
                         <View style={styles.footer}>
-                            <TouchableOpacity style={styles.icons}>
+                            <TouchableOpacity style={styles.icons} onPress={() => Alert.alert('You are already on the home page.')}>
                                 <Entypo name="home" size={45} color="#C1121F" style={styles.icon1} />
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.icons}>
+                            <TouchableOpacity style={styles.icons} onPress={() => navigation.navigate('Chat')}>
                                 <Entypo name="message" size={45} color="#A6A6A6" style={styles.icon1} />
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.icons} onPress={onHandleLogout}>

@@ -34,7 +34,7 @@ const Register = ({navigation}) => {
                 });
 
                 Alert.alert('Success', 'Account created successfully');
-                navigation.navigate('Login');
+                navigation.navigate('Home_Resident');
 
             } else {
                 alert("Passwords are different!")

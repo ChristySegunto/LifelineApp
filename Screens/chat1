@@ -1,0 +1,215 @@
+// export default function Chat() {
+    // const [messages, setMessages] = useState([]);
+    // const [chatbotResponse, setChatbotResponse] = useState(null);
+    // const auth = getAuth(app);
+    // const user = auth.currentUser;
+    // const db = getFirestore(app);
+    // const userId = auth.currentUser.uid;
+    
+
+    // useEffect(() => {
+    //     // Set initial chatbot message
+    //     const initialChatbotMessage = {
+    //         _id: Math.random().toString(),
+    //         createdAt: new Date(),
+    //         text:
+    //             "Hi! This is Firey speaking. Simply type 'Fire' to initiate the process and 'Exit' to terminate the process.",
+    //         user: {
+    //             _id: 'chatbot',
+    //             name: 'Chatbot',
+    //         },
+    //     };
+
+    //     // Set initial messages state with the chatbot's message
+    //     setMessages([initialChatbotMessage]);
+    //     setChatbotResponse(initialChatbotMessage);
+
+    //     // Set up Firestore listener for user messages
+    //     const collectionRef = collection(db, 'users', userId, 'messages');
+    //     const q = query(collectionRef, orderBy('createdAt', 'desc'));
+
+    //     const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    //         setMessages(
+    //             querySnapshot.docs.map((doc) => ({
+    //                 _id: doc.data()._id,
+    //                 createdAt: doc.data().createdAt.toDate(),
+    //                 text: doc.data().text,
+    //                 user: doc.data().user,
+    //             }))
+    //         );
+    //     });
+
+    //     return () => {
+    //         // Cleanup on unmount
+    //         unsubscribe();
+    //     };
+    // }, []);
+
+    // const onSend = useCallback((newMessages = []) => {
+    //     const { _id, createdAt, text, user } = newMessages[0];
+    //     setMessages((previousMessages) =>
+    //         GiftedChat.append(previousMessages, newMessages)
+    //     );
+
+    //     const auth = getAuth();
+
+    //     addDoc(collection(db, 'users', userId, 'messages'), {
+    //         _id,
+    //         createdAt,
+    //         text,
+    //         user,
+    //     });
+
+    //     // Check if the user is initiating the conversation
+    //     const isUserInitiating = newMessages[0]?.user?._id === user?.uid;
+
+    //     if (isUserInitiating) {
+    //         // Update the state with chatbot response
+    //         let response = null;
+
+    //         if (text.toLowerCase() === 'fire') {
+    //             response = {
+    //                 _id: Math.random().toString(),
+    //                 createdAt: new Date(),
+    //                 text:
+    //                     "Hello! I'm here to help. I'm sorry to hear about the emergency. Your safety is our top priority. Please provide details about the location.",
+    //                 user: {
+    //                     _id: 'chatbot',
+    //                     name: 'Chatbot',
+    //                 },
+    //             };
+    //         } else if (text.toLowerCase() === 'exit') {
+    //             response = {
+    //                 _id: Math.random().toString(),
+    //                 createdAt: new Date(),
+    //                 text: "Thank you for using Firey. Hoping you are always safe!",
+    //                 user: {
+    //                     _id: 'chatbot',
+    //                     name: 'Chatbot',
+    //                 },
+    //             };
+    //         }
+
+    //         // Update the state to include the chatbot's response
+    //         if (response) {
+    //             setChatbotResponse(response);
+    //             setMessages((previousMessages) =>
+    //                 GiftedChat.append(previousMessages, [response])
+    //             );
+    //         }
+    //     }
+    // }, []);
+
+    // return (
+    //     <GiftedChat
+    //         messages={messages}
+    //         showAvatarForEveryMessage={false}
+    //         showUserAvatar={false}
+    //         onSend={(messages) => onSend(messages)}
+    //         messagesContainerStyle={{
+    //             backgroundColor: '#fff',
+    //         }}
+    //         textInputStyle={{
+    //             backgroundColor: '#fff',
+    //             borderRadius: 20,
+    //         }}
+    //         user={{
+    //             _id: user?.uid,
+    //             //avatar: 'https://i.pravatar.cc/300'
+    //         }}
+    //     />
+    // );
+
+// }
+
+
+
+
+
+
+
+
+
+
+
+// // chat.js
+// import React, {
+//     useState,
+//     useEffect,
+//     useLayoutEffect,
+//     useCallback
+// } from 'react';
+// import colors from '../colors';
+// import { AntDesign } from '@expo/vector-icons';
+// import { useNavigation } from '@react-navigation/native';
+// import { TouchableOpacity, Text, View } from 'react-native';
+// import { GiftedChat } from "react-native-gifted-chat";
+// import { getAuth } from "firebase/auth";
+// import { getFirestore, collection, query, orderBy, onSnapshot, addDoc, doc } from "firebase/firestore";
+// import { app } from '../Firebase/firebase';
+
+
+// export default function Chat() {
+//     const [messages, setMessages] = useState([]);
+//     useEffect(() => {
+//         // Initiate the chat when the component mounts
+//         handleFireInitiation();
+//     }, []);
+
+
+//     const handleInput = (text) => {
+//         const inputText = text.trim().toLowerCase();
+
+//         if (inputText === 'fire') {
+//             handleFireInitiation();
+//         } else if (inputText === 'exit') {
+//             handleBye();
+//         } else {
+//             handleDefaultResponse();
+//         }
+//     };
+
+//     const handleFireInitiation = () => {
+//         const initialMessage = createBotMessage("Hi! this is Firey speaking. Simply type 'Fire' to initiate the process and 'Exit' to terminate the process.");
+//         setMessages((prevMessages) => GiftedChat.append(prevMessages, initialMessage));
+//     };
+
+//     const handleBye = () => {
+//         const initialMessage = createBotMessage("Byeee");
+//         setMessages((prevMessages) => GiftedChat.append(prevMessages, initialMessage));
+//     };
+
+//     const handleDefaultResponse = () => {
+//         // Handle other responses or provide a default message
+//         const defaultMessage = createBotMessage("I'm sorry, I didn't understand that. Please type 'Fire' to initiate the process or 'Exit' to terminate.");
+//         setMessages((prevMessages) => GiftedChat.append(prevMessages, defaultMessage));
+//     };
+
+//     const createBotMessage = (text) => ({
+//         _id: Math.round(Math.random() * 1000000).toString(),
+//         text,
+//         createdAt: new Date(),
+//         user: { _id: 2, name: 'Firey', avatar: './../assets/img/avatar.png' }, // Set the avatar URL accordingly
+//     });
+
+//     const onSend = (messages = []) => {
+//         setMessages((prevMessages) => GiftedChat.append(prevMessages, messages));
+//         handleInput(messages[0].text);
+//     };
+
+//     return (
+//         <GiftedChat
+//             messages={messages}
+//             onSend={(messages) => onSend(messages)}
+//             messagesContainerStyle={{
+//                 backgroundColor: '#fff',
+//             }}
+//             user={{
+//                 _id: 1, // Your user ID
+//             }}
+//         />
+//     );
+// }
+
+
+

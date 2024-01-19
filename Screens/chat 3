@@ -1,0 +1,213 @@
+// chat.js
+import React, {
+    useState,
+    useEffect,
+    useLayoutEffect,
+    useCallback
+} from 'react';
+import colors from '../colors';
+import { AntDesign } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { TouchableOpacity, Text, View } from 'react-native';
+import { GiftedChat } from "react-native-gifted-chat";
+import { getAuth } from "firebase/auth";
+import { getFirestore, collection, query, orderBy, onSnapshot, addDoc, doc } from "firebase/firestore";
+import { app } from '../Firebase/firebase';
+
+
+export default function Chat() {
+    const navigation = useNavigation();
+    const [messages, setMessages] = useState([]);
+    const [conversationStep, setConversationStep] = useState(0);
+    const [summary, setSummary] = useState({
+        fireInitiationDetails: '',
+        locationDetails: '',
+        fireCauseDetails: '',
+        fireSizeDetails: '',
+        otherDetails: '',
+    });
+
+
+    useEffect(() => {
+        // Initiate the chat when the component mounts
+        handleFireInitiation();
+    }, []);
+
+
+    const handleInput = (text) => {
+        const inputText = text.trim().toLowerCase();
+
+        // Check for initial input
+        if (conversationStep === 0) {
+            if (inputText === 'fire') {
+                setConversationStep(0);
+                setSummary((prevSummary) => ({ ...prevSummary, fireInitiationDetails: text }));
+
+                setConversationStep((prevStep) => {
+                    const nextStep = prevStep + 1;
+                    handleStep(nextStep, text);
+                    return nextStep;
+                });
+            } else if (inputText === 'exit') {
+                handleBye();
+                navigation.navigate('Home_Resident');
+                return;
+            } else {
+                handleDefaultResponse();
+                setConversationStep(0);
+
+                if (inputText === 'fire') {
+                    setConversationStep(0);
+                    setSummary((prevSummary) => ({ ...prevSummary, fireInitiationDetails: text }));
+                    setConversationStep((prevStep) => {
+                        const nextStep = prevStep + 1;
+                        handleStep(nextStep, text);
+                        return nextStep;
+                    });
+                } else if (inputText === 'exit') {
+                    handleBye();
+                    navigation.navigate('Home_Resident');
+                    return;
+                }
+
+            }
+        } else {
+            setConversationStep((prevStep) => {
+                const nextStep = prevStep + 1;
+                handleStep(nextStep, text);
+                return nextStep;
+            });
+
+        }
+
+        // Handle input for other conversation steps
+        const handleStep = (conversationStep, text) => {
+            switch (conversationStep) {
+                case 0:
+                    handleFireInitiation(text);
+                    break;
+                case 1:
+                    handleGreeting(text);
+                    break;
+                case 2:
+                    handleLocationDetails(text);
+                    break;
+                case 3:
+                    handleFireCauseDetails(text);
+                    break;
+                case 4:
+                    handleFireSizeDetails(text);
+                    break;
+                case 5:
+                    handleLastResponse(text);
+                    handleSummary(text);
+                    break;
+                default:
+                    handleBye();
+            }
+        };
+
+    };
+
+
+    const handleBye = () => {
+        const defaultMessage = createBotMessage("Thank you for using Firey. Hoping you are always safe!");
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, defaultMessage));
+    }
+
+    const handleFireInitiation = (text) => {
+        const initialMessage = createBotMessage("Hi! this is Firey speaking. Simply type 'Fire' to initiate the process and 'Exit' to terminate the process.");
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, initialMessage));
+        setSummary((prevSummary) => ({ ...prevSummary, locationDetails: text }));
+        setConversationStep(0);
+    };
+
+    const handleGreeting = (text) => {
+        const message = createBotMessage(`Hello! I'm here to help. I'm sorry to hear about the emergency. Your safety is our top priority. Please provide details about the location.`);
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, message));
+        setSummary((prevSummary) => ({ ...prevSummary, locationDetails: text }));
+        setConversationStep(1);
+    };
+
+
+
+
+    const handleLocationDetails = (text) => {
+        const message = createBotMessage(`Thank you! That is noted. Can you provide any additional details, such as how the fire started?`);
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, message));
+        setSummary((prevSummary) => ({ ...prevSummary, locationDetails: text }));
+        setConversationStep(2);
+
+    };
+
+    const handleFireCauseDetails = (text) => {
+        const message = createBotMessage(`Understood. How about the size of the fire?`);
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, message));
+        setSummary((prevSummary) => ({ ...prevSummary, fireCauseDetails: text }));
+        setConversationStep(3);
+
+    };
+
+    const handleFireSizeDetails = (text) => {
+        const message = createBotMessage(`I've relayed that information to the fire department. \n\nIn the meantime, please make sure to evacuate the building calmly and follow any safety procedures. \n\nIs there anyone with mobility issues or special needs that the emergency services should be aware of?`);
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, message));
+        setSummary((prevSummary) => ({ ...prevSummary, fireSizeDetails: text }));
+        setConversationStep(4);
+    };
+
+    const handleLastResponse = (text) => {
+        // Handle other responses or provide a default message
+        const defaultMessage = createBotMessage("The fire departments are now informed. They will do their best to reach the location as quickly as possible. \n\nPlease let them know anything else they might need to be aware of when they arrive. \n\nKeep safe and take care!");
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, defaultMessage));
+        setSummary((prevSummary) => ({ ...prevSummary, otherDetails: text }));
+        setConversationStep(5);
+    };
+
+    const handleSummary = (text) => {
+        const defaultMessage = createBotMessage(`This is your summarized fire report:
+        Initiation Details: ${summary.fireInitiationDetails} 
+        Location Details: ${summary.locationDetails}
+        Fire Cause Details: ${summary.fireCauseDetails}
+        Fire Size Details: ${summary.fireSizeDetails}
+        Other Details: ${summary.otherDetails}`);
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, defaultMessage));
+    };
+
+    const handleDefaultResponse = () => {
+        // Handle other responses or provide a default message
+        const defaultMessage = createBotMessage("I'm sorry, I didn't understand that. Please type 'Fire' to initiate the process or 'Exit' to terminate.");
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, defaultMessage));
+        setConversationStep(0);
+    };
+
+
+    const createBotMessage = (text) => ({
+        _id: Math.round(Math.random() * 1000000).toString(),
+        text,
+        createdAt: new Date(),
+        user: { _id: 2, name: 'Firey', avatar: './../assets/img/avatar.png' }, // Set the avatar URL accordingly
+    });
+
+    const onSend = (messages = []) => {
+        setMessages((prevMessages) => GiftedChat.append(prevMessages, messages));
+        handleInput(messages[0].text);
+    };
+
+
+    return (
+        <GiftedChat
+            messages={messages}
+            onSend={(messages) => onSend(messages)}
+
+            messagesContainerStyle={{
+                backgroundColor: '#fff',
+            }}
+            user={{
+                _id: 1, // Your user ID
+            }}
+        />
+    );
+}
+
+
+
