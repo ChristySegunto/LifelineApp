@@ -26,13 +26,12 @@ export default function Chat_Fireauth() {
     const [additionalInfo, setAdditionalInfo] = useState('');
     const [userName, setUserName] = useState('');
     
-
     //firebase
 
     const currentDate = new Date();
     const dateOnly = currentDate.toLocaleDateString();
 
-    const [isTextInputEnabled, setIsTextInputEnabled] = useState(true); // Add this state
+    const [isTextInputEnabled, setIsTextInputEnabled] = useState(false); // Add this state
 
     useEffect(() => {
         const fetchReport = async () => {
@@ -96,13 +95,8 @@ user: { _id: 2, name: 'Firey', avatar: './../assets/img/avatar.png' },
 
 });
 
-
-
-
     const proceedButton = { title: 'Proceed', value: 'proceed', style: { backgroundColor: '#C1121F', color: 'white' } };
     const exitButton = { title: 'Exit', value: 'exit', style: { backgroundColor: '#A6A6A6', color: 'white' } };
-
-
 
     const createBotMessage = (text, buttons = []) => ({
         _id: Math.round(Math.random() * 1000000).toString(),
@@ -111,8 +105,6 @@ user: { _id: 2, name: 'Firey', avatar: './../assets/img/avatar.png' },
         createdAt: new Date(),
         user: { _id: 2, name: 'Firey', avatar: './../assets/img/avatar.png' },
     });
-
-
 
 
     const sendToFireAuth = async (message) => {

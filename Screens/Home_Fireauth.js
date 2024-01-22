@@ -93,7 +93,7 @@ const Home_Fireauth = ({ navigation }) => {
                                     <Image source={require('./../assets/img/locatethefire.png')} style={styles.ButtonImage2}></Image>
                                     <Text style={styles.ButtonText}>Locate the</Text>
                                     <Text style={styles.BigButtonText}>Fire</Text>
-                                    <Text style={styles.MiniButtonText}>See a real-time update of fire incidents in a map.</Text>
+                                    <Text style={styles.MiniButtonText}>See a real-time update of fire incidents reported by residents.</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
     MiniButtonText: {
-        marginTop: 15,
+        marginTop: 10,
         fontSize: 14,
         color: '#545454',
     },
