@@ -97,7 +97,7 @@ const Home_Resident = ({navigation}) => {
                                     <Image source={require('./../assets/img/locatethefire.png')} style={styles.ButtonImage2}></Image>
                                     <Text style={styles.ButtonText}>Locate the</Text>
                                     <Text style={styles.BigButtonText}>Fire</Text>
-                                    <Text style={styles.MiniButtonText}>See a real-time update of fire incidents in a map.</Text>
+                                    <Text style={styles.MiniButtonText}>See a real-time update of fire incidents reported by residents.</Text>
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -108,7 +108,7 @@ const Home_Resident = ({navigation}) => {
                                     <Image source={require('./../assets/img/chatwithfirey.png')} style={styles.RButtonImage1}></Image>
                                     <Text style={styles.RButtonText1}>Start a chat</Text>
                                     <Text style={styles.RBigButtonText1}>With Firey</Text>
-                                    <Text style={styles.MiniButtonText}>Report a fire accident with Firey.</Text>
+                                    <Text style={styles.MiniButtonText, {marginTop: 25}}>Report a fire accident with Firey.</Text>
                                 </TouchableOpacity>
                             </View>
                             <View style={styles.RightBox2}>
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
         marginBottom: 15,
     },
     MiniButtonText: {
-        marginTop: 15,
+        marginTop: 5,
         fontSize: 14,
         color: '#545454',
     },
